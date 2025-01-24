@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lista de tarefas</title>
+  <style>
+    :root {
+      --bg-color: #ffffff;
+      --text-color: #000000;
+      --table-border-color: #ccc;
+      --table-header-bg: #f4f4f4;
+    }
+
+    [data-theme="dark"] {
+      --bg-color: #121212;
+      --text-color: #ffffff;
+      --table-border-color: #555;
+      --table-header-bg: #333333;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 20px;
+    }
+
+    h1 {
+      text-align: center;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+
+    th,
+    td {
+      border: 1px solid var(--table-border-color);
+      text-align: center;
+      padding: 8px;
+    }
+
+    th {
+      background-color: var(--table-header-bg);
+    }
+
+    #task-input {
+      width: 100%;
+    }
+
+    .dark-mode-toggle {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="dark-mode-toggle">
+    <label for="dark-mode-switch">Modo Escuro</label><input type="checkbox" id="dark-mode-switch">
+  </div>
+
+  <h1>Lista de tarefas prioritárias</h1>
+  <table id="task">
+    <thead>
+      <tr>
+        <th>Inserir nova tarefa</th>
+        <th>Gravidade</th>
+        <th>Impacto</th>
+        <th>Urgência</th>
+        <th> </th>
+      </tr>
+    </thead>
+    <tbody>
+      <form id="task-input-form">
+        <tr>
+          <td><input type="text" id="task-input" placeholder="Inserir tarefa" required></td>
+          <td><select id="gravity">
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+              <option value="5">5</option>
+            </select>
+          </td>
+          <td><select id="impact">
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+              <option value="5">5</option>
+            </select>
+          </td>
+          <td><select id="urgency">
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+              <option value="5">5</option>
+            </select>
+          </td>
+          <td><button type="button" onclick="addTask()">Adicionar Tarefa</button></td>
+        </tr>
+      </form>
+    </tbody>
+  </table>
+
+  <table id="task-table">
+    <thead>
+      <tr>
+        <th>Tarefas</th>
+        <th>Data</th>
+        <th>Gravidade</th>
+        <th>Impacto</th>
+        <th>Urgência</th>
+        <th>Score</th>
+        <th>Ação</th>
+      </tr>
+    </thead>
+    <tbody>
+    </tbody>
+  </table>
+
+  <script>
+    const taskTable = document.getElementById('task-table').querySelector('tbody');
+    const localStorageKey = 'taskList';
+    const darkModeKey = 'darkMode';
+
+    // Initialize Dark Mode
+    const darkModeSwitch = document.getElementById('dark-mode-switch');
+    document.body.setAttribute('data-theme', localStorage.getItem(darkModeKey) || 'light');
+    darkModeSwitch.checked = localStorage.getItem(darkModeKey) === 'dark';
+
+    darkModeSwitch.addEventListener('change', () => {
+      const theme = darkModeSwitch.checked ? 'dark' : 'light';
+      document.body.setAttribute('data-theme', theme);
+      localStorage.setItem(darkModeKey, theme);
+    });
+
+    // Load tasks from localStorage
+    window.onload = function () {
+      const savedTasks = JSON.parse(localStorage.getItem(localStorageKey)) || [];
+      savedTasks.forEach(task => addTaskToTable(task));
+      sortTasks();
+    };
+
+    function addTask() {
+      const taskInput = document.getElementById('task-input').value.trim();
+      const date = new Date().toLocaleString('pt-BR');
+      const gravity = parseInt(document.getElementById('gravity').value);
+      const impact = parseInt(document.getElementById('impact').value);
+      const urgency = parseInt(document.getElementById('urgency').value);
+      const score = gravity * impact * urgency;
+
+      if (taskInput === '') {
+        alert('Por favor, insira uma tarefa.');
+        return;
+      }
+
+      const task = { taskInput, date, gravity, impact, urgency, score };
+
+      // Save task to localStorage
+      const savedTasks = JSON.parse(localStorage.getItem(localStorageKey)) || [];
+      savedTasks.push(task);
+      localStorage.setItem(localStorageKey, JSON.stringify(savedTasks));
+
+      // Add the new task to the table
+      addTaskToTable(task);
+
+      // Clear input field
+      document.getElementById('task-input-form').reset();
+
+      // Reorganize table rows based on score
+      sortTasks();
+    }
+
+    function addTaskToTable(task) {
+      const newRow = document.createElement('tr');
+      newRow.innerHTML = `
+        <td>${task.taskInput}</td>
+        <td>${task.date}</td>
+        <td>${task.gravity}</td>
+        <td>${task.impact}</td>
+        <td>${task.urgency}</td>
+        <td>${task.score}</td>
+        <td><button onclick="deleteTask(this)">Excluir</button></td>
+      `;
+      taskTable.appendChild(newRow);
+    }
+
+    function sortTasks() {
+      const rows = Array.from(taskTable.rows);
+      rows.sort((a, b) => {
+        const scoreA = parseInt(a.cells[5].innerText);
+        const scoreB = parseInt(b.cells[5].innerText);
+        return scoreB - scoreA; // Descending order
+      });
+      rows.forEach(row => taskTable.appendChild(row)); // Reattach sorted rows
+    }
+
+    function deleteTask(button) {
+      const row = button.parentElement.parentElement;
+      const taskInput = row.cells[0].innerText;
+      const savedTasks = JSON.parse(localStorage.getItem(localStorageKey)) || [];
+
+      // Remove the task from localStorage
+      const updatedTasks = savedTasks.filter(task => task.taskInput !== taskInput);
+      localStorage.setItem(localStorageKey, JSON.stringify(updatedTasks));
+
+      // Remove the row from the table
+      row.remove();
+    }
+  </script>
+</body>
+
+</html>
