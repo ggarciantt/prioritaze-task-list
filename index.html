@@ -49,13 +49,13 @@
       background-color: var(--table-header-bg);
     }
 
-    #task-input {
+    td:has(> #task-input) {
       height: 20px;
       margin: 0;
       padding: 0;
     }
 
-    #task-input > input {
+    #task-input {
       border: transparent;
       height: 100%;
       margin: 0;
@@ -103,7 +103,7 @@
     <tbody>
       <form id="task-input-form">
         <tr>
-          <td id="task-input"><input type="text" placeholder=" Inserir tarefa" required></td>
+          <td><input id="task-input" type="text" placeholder=" Inserir tarefa" required></td>
           <td><select id="gravity">
               <option value="1">1</option>
               <option value="2">2</option>
