@@ -59,6 +59,18 @@
       gap: 10px;
       margin-bottom: 20px;
     }
+
+    .red {
+        background-color: darkred;
+    }
+
+    .yellow {
+        background-color: darkgoldenrod;
+    }
+
+    .green {
+        background-color: darkgreen;
+    }
   </style>
 </head>
 
@@ -183,12 +195,21 @@
 
     function addTaskToTable(task) {
       const newRow = document.createElement('tr');
+      
+      gravityImpactUrgency = [Object.values(task)[2], Object.values(task)[3], Object.values(task)[4]]
+      
       newRow.innerHTML = `
         <td>${task.taskInput}</td>
         <td>${task.date}</td>
-        <td>${task.gravity}</td>
-        <td>${task.impact}</td>
-        <td>${task.urgency}</td>
+        <td class=${gravityImpactUrgency[0] == 5 ? bgColor = "red" 
+        : gravityImpactUrgency[0] <= 2 ? bgColor = "green" 
+        : bgColor = "yellow"}>${task.gravity}</td>
+        <td class=${gravityImpactUrgency[1] == 5 ? bgColor = "red" 
+        : gravityImpactUrgency[1] <= 2 ? bgColor = "green" 
+        : bgColor = "yellow"}>${task.impact}</td>
+        <td class=${gravityImpactUrgency[2] == 5 ? bgColor = "red" 
+        : gravityImpactUrgency[2] <= 2 ? bgColor = "green" 
+        : bgColor = "yellow"}>${task.urgency}</td>
         <td>${task.score}</td>
         <td><button onclick="deleteTask(this)">Excluir</button></td>
       `;
